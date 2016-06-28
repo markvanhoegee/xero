@@ -21,7 +21,9 @@ function Xero(key, secret, rsa_key, showXmlAttributes, customHeaders) {
 }
 
 Xero.prototype.call = function(method, path, body, callback) {
-    return Xero.callWithOverwrite(method, path, body, null, callback);
+    var self = this;
+    
+    return self.callWithOverwrite(method, path, body, null, callback);
 };
 
 Xero.prototype.callWithOverwrite = function(method, path, body, rootOverwrite, callback) {
