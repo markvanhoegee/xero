@@ -14,13 +14,17 @@ function Xero(key, secret, rsa_key, showXmlAttributes, customHeaders) {
     this.parser = new xml2js.Parser({explicitArray: false, ignoreAttrs: showXmlAttributes !== undefined ? (showXmlAttributes ? false : true) : true, async: true});
 
     this.oa = new oauth.OAuth(null, null, key, secret, '1.0', null, "PLAINTEXT", null, customHeaders);
-    this.oa._signatureMethod = "RSA-SHA1"
+    this.oa._signatureMethod = "RSA-SHA1";
     this.oa._createSignature = function(signatureBase, tokenSecret) {
         return crypto.createSign("RSA-SHA1").update(signatureBase).sign(rsa_key, output_format = "base64");
-    }
+    };
 }
 
 Xero.prototype.call = function(method, path, body, callback) {
+    return Xero.call(method, path, body, callback, null);
+};
+
+Xero.prototype.call = function(method, path, body, callback, rootOverwrite) {
     var self = this;
 
     var post_body = null;
@@ -29,7 +33,7 @@ Xero.prototype.call = function(method, path, body, callback) {
         if (Buffer.isBuffer(body)) {
             post_body = body;
         } else {
-            var root = path.match(/([^\/\?]+)/)[1];
+            var root = (rootOverwrite) ? rootOverwrite : path.match(/([^\/\?]+)/)[1];
             post_body = new EasyXml({rootElement: inflect.singularize(root), rootArray: root, manifest: true}).render(body);
             content_type = 'application/xml';
         }
@@ -49,6 +53,6 @@ Xero.prototype.call = function(method, path, body, callback) {
         });
     };
     return self.oa._performSecureRequest(self.key, self.secret, method, XERO_API_URL + path, null, post_body, content_type, callback ? process : null);
-}
+};
 
 module.exports = Xero;
